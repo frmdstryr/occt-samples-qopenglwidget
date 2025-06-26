@@ -7,7 +7,7 @@ set (APP_VERSION_MAJOR 1)
 set (APP_VERSION_MINOR 0)
 
 # compiler flags
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 if (MSVC)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:precise /EHa /MP")
   string (REGEX REPLACE "/EHsc" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -47,13 +47,13 @@ endif()
 # Find OpenGL
 find_package (OpenGL REQUIRED)
 
-# Find Qt5
+# Find Qt
 set (CMAKE_AUTOUIC ON)
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_AUTORCC ON)
 set_property (GLOBAL PROPERTY AUTOMOC_SOURCE_GROUP "Generated Files/Moc")
 set_property (GLOBAL PROPERTY AUTORCC_SOURCE_GROUP "Generated Files/Resources")
-find_package (Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt6 COMPONENTS Gui Widgets OpenGLWidgets REQUIRED)
 
 # Find Open CASCADE Technology
 find_package (OpenCASCADE REQUIRED)
@@ -76,7 +76,7 @@ add_executable (${PROJECT_NAME}
   OcctGlTools.h
   OcctGlTools.cpp
 )
-target_link_libraries (${PROJECT_NAME} PRIVATE Qt5::Widgets ${OpenCASCADE_LIBS} ${OPENGL_LIBRARIES})
+target_link_libraries (${PROJECT_NAME} PRIVATE Qt6::Widgets Qt6::Gui Qt6::OpenGLWidgets ${OpenCASCADE_LIBS} ${OPENGL_LIBRARIES})
 
 # auxiliary development environment
 if (MSVC)

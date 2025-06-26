@@ -32,11 +32,12 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QOpenGLContext>
 #include <Standard_WarningsRestore.hxx>
 
 #include <AIS_Shape.hxx>
 #include <AIS_ViewCube.hxx>
-#include <Aspect_DisplayConnection.hxx>
+#include <Wayland_DisplayConnection.hxx>
 #include <Aspect_NeutralWindow.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <Message.hxx>
@@ -225,7 +226,7 @@ OcctQtViewer::OcctQtViewer (QWidget* theParent)
 : QOpenGLWidget (theParent),
   myIsCoreProfile (true)
 {
-  Handle(Aspect_DisplayConnection) aDisp = new Aspect_DisplayConnection();
+  Handle(Aspect_DisplayConnection) aDisp = new Wayland_DisplayConnection();
   Handle(OpenGl_GraphicDriver) aDriver = new OpenGl_GraphicDriver (aDisp, false);
   // lets QOpenGLWidget to manage buffer swap
   aDriver->ChangeOptions().buffersNoSwap = true;
@@ -365,6 +366,20 @@ void OcctQtViewer::initializeGL()
   HWND  aWglWin = WindowFromDC(aWglDevCtx);
   aNativeWin = (Aspect_Drawable)aWglWin;
 #endif
+
+  const auto interface = context()->nativeInterface<QNativeInterface::QEGLContext>();
+  Handle(OpenGl_GraphicDriver) aDriver = Handle(OpenGl_GraphicDriver)::DownCast(myViewer->Driver());
+  if ( !aDriver->InitEglContext(
+    interface->display(),
+    interface->nativeContext(),
+    interface->config()
+  ))
+  {
+    Message::SendFail() << "Error: OpenGl_GraphicDriver is unable to initialize EGL context";
+    QMessageBox::critical (0, "Failure", "OpenGl_Context is unable to initialize EGL context");
+    QApplication::exit (1);
+    return;
+  }
 
   Handle(OpenGl_Context) aGlCtx = new OpenGl_Context();
   if (!aGlCtx->Init (myIsCoreProfile))
